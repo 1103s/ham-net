@@ -1,3 +1,4 @@
+from copy import deepcopy
 from time import sleep
 from tops import GLOBAL_RUN
 from dataclasses import dataclass, field
@@ -20,6 +21,7 @@ class Main():
     nodes: List[Node]
     cas: List[Switch]
     css: Switch
+    shadow: Switch
     global_blocks: List[int] = field(default_factory=list)
     local_blocks: List[int] = field(default_factory=list)
 
@@ -41,6 +43,7 @@ class Main():
                     self.local_blocks.append(int(tmp))
 
         self.css = Switch(0, self.global_blocks, self.local_blocks)
+        
 
 
         nlist = []
@@ -67,6 +70,9 @@ class Main():
                     f.writelines(l)
                 with open(f'node{x.node_id}output.txt', "w") as f:
                     f.write("")
+
+        self.use_shadow = False
+        self.shadow = deepcopy(self.css)
 
         self.css.init_msg()
         for x in self.nodes:

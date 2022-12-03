@@ -43,7 +43,7 @@ class Node(Device):
                 self.tracking_buffer[time()] = f
                 if (ERR and (randint(1,100) < 5)):
                     brodcast(self, f, crc=0b00000111)
-                    print(f"~~ ADDED ERROR TO: {f}")
+                    print(f">< ADDED BAD CRC TO: {f}")
                 else:
                     brodcast(self, f)
 
@@ -77,6 +77,11 @@ class Node(Device):
         if (f.dst != self.name):
             return
         if (f.src == self.name):
+            return
+
+        if (ERR and (randint(1,100) < 5)):
+            log.append(">< RANDOMLY NOT ACCEPTING PACKET!")
+            print("\n".join(log))
             return
 
         t = get_type(f)
