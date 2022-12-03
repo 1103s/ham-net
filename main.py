@@ -1,3 +1,5 @@
+from time import sleep
+from tops import GLOBAL_RUN
 from dataclasses import dataclass, field
 from itertools import cycle
 from threading import Thread
@@ -78,17 +80,17 @@ class Main():
 
         wait_jobs = []
         for x in self.nodes:
-            tmp = Thread(target=x.job_loop)
+            tmp = Thread(target=x.job_loop, daemon=True)
             jobs.append(tmp)
             wait_jobs.append(tmp)
 
         for x in jobs:
             x.start()
 
-        for x in wait_jobs:
-            x.join()
+        while (GLOBAL_RUN.qsize()):
+            sleep(0.0000001)
 
 
 
 Main(2, 2)
-print("\n\nDONE")
+print("\n\nSHUTING DOWN REMAING THREADS:")

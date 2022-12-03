@@ -33,7 +33,6 @@ class Switch(Device):
         """
 
         for rule in self.lc:
-            print("hog")
             f = make_ack(100, 100, 100, 100, RULEv, str(rule))
             brodcast(self, f)
 
@@ -58,7 +57,7 @@ class Switch(Device):
         self.st[(f.sn, f.src)] = inverse_wire
 
         if ((f.dn in self.global_blocks) or (f.dst in self.local_blocks)):
-            if (f.dn != f.sn):
+            if ((f.dn != f.sn) and (get_type(f) == FType.MSG)):
                 log.append(f"\\ BLOCKED")
                 f = make_ack(f.sn, f.src, f.dn, f.dst, FAKv, f.data)
 
@@ -71,7 +70,7 @@ class Switch(Device):
             send(next_hop.write, f, next_hop.read)
             log.append(f"<| FORWADING VIA {next_hop}")
 
-        # print("\n".join(log))
+        print("\n".join(log))
         return
 
 

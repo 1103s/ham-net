@@ -34,24 +34,25 @@ class Device():
         Pulls Messages from the connected wires and processes them with
         diffrent threads.
         """
-#        GLOBAL_RUN.put(f"{self.name}")
+        if (self.name >= 0):
+            GLOBAL_RUN.put(f"{self.name}")
+            print(f"#+ {GLOBAL_RUN.qsize()}")
+
+        pull = True
         jobs = []
-        while (self.alive):
+        while (self.alive or GLOBAL_RUN.qsize()):
             (w, f) = receive(self)
             tmp = Thread(target=self.processes_frame, name=f"[{self}-{f}]",
                          args=(w, f))
             jobs.append(tmp)
             tmp.start()
 
-#        for x in jobs:
-#            x.join()
-#
-#        GLOBAL_RUN.get(timeout=50)
-#
-#        while (GLOBAL_RUN.qsize()):
-#            sleep(1)
-#
-#        print(f"!! EXITING {self}")
+            if (not self.alive) and pull:
+                pull = False
+                GLOBAL_RUN.get()
+                print(f"#- {GLOBAL_RUN.qsize()}")
+
+        print(f"!! EXITING {self}")
 
 
 
