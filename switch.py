@@ -3,11 +3,13 @@ from typing import List
 from device import Device
 from itertools import count
 from frame import FAKv, Frame, make_ack, RULEv, FType, get_type
+from random import randint
 
 from wire import LINK_PAIRS, brodcast, Wire, send
 
 TOP_SWITCH = count(1)
 ST_TIME = 3
+ERR = True
 
 class Switch(Device):
     """
@@ -38,6 +40,8 @@ class Switch(Device):
 
     def processes_frame(self, w: Wire, f: Frame):
 
+        if ((w is None) and (f is None)):
+            return
 
         log =[("-"*40),f">| SWITCH {self.net} RECIVED:\n  {f}\n  VIA\n  {w}"]
 
@@ -57,11 +61,16 @@ class Switch(Device):
         self.st[(f.sn, f.src)] = inverse_wire
 
         if ((f.dn in self.global_blocks) or (f.dst in self.local_blocks)):
-            if ((f.dn != f.sn) and (get_type(f) == FType.MSG)):
+            if ((f.dn != f.sn) and (get_type(f) in [FType.MSG, FType.RCK])):
                 log.append(f"\\ BLOCKED")
                 f = make_ack(f.sn, f.src, f.dn, f.dst, FAKv, f.data)
 
         next_hop = self.st.get((f.dn, f.dst), None)
+
+        if (ERR and (randint(1,100) < 10)):
+            log.append(f">< RANDOMLY DROPING FRAME!")
+            print("\n".join(log))
+            return
 
         if (next_hop is None):
             brodcast(self, f, w)

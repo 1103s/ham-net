@@ -59,8 +59,11 @@ def receive(d: object) -> Tuple[Wire, Frame]:
         for link in READ_LINKS[d]:
             if (link.q.empty()):
                 sleep(MSG_WAIT)
+                continue
             else:
-                return (link, load_frame(link.q.get()))
+                tmp = load_frame(link.q.get())
+                return (link, tmp)
+        return (None, None)
 
 def brodcast(d: object, f: Frame, block:Wire=None, crc=None):
     """

@@ -47,7 +47,30 @@ class Node(Device):
                 else:
                     brodcast(self, f)
 
+    def check_resend(self, log: list) -> None:
+        """
+        Check to see if there are any unsent messages.
+        """
+        update = list()
+        for k,v in self.tracking_buffer.items():
+            if ((k + MSG_TIMEOUT) < time()):
+                tmp = make_ack(v.dn, v.dst, v.sn, v.src, RCKv, v.data)
+                log.append(f"(| TRYING TO RESEND\n  {tmp}\n  VIA\n  BRODCAST")
+                update.append(k)
+                brodcast(self, tmp)
+
+        for x in update:
+            tmp = self.tracking_buffer.pop(x)
+            self.tracking_buffer[time()] = tmp
+
     def processes_frame(self, w: Wire, f: Frame):
+
+        if ((w is None) and (f is None)):
+            log = ["<3 HEART BEAT"]
+            self.check_resend(log)
+            if (len(log) > 1):
+                print("\n".join(log))
+            return
 
         log =[("-"*40),f">| NODE {self.node_id} RECIVED:\n  {f}\n  VIA\n  {w}"]
 
@@ -77,7 +100,6 @@ class Node(Device):
             self.tracking_buffer = tmp
             log.append(f"|| NO RESPONSE NESSARY. MSG MARKED AS SENT.\n")
         elif (t == FType.RCK):
-            raise Exception("AAAAAAAAAAAAAAAAAAAA")
             if (not ((f.sn, f.src, f.dn, f.dst, f.data) in self.rcv_buffer)):
                 with open(f"node{self.node_id}output.txt", "a") as o:
                     o.write(f'{f.sn}_{f.src}: {f.data}\n')
@@ -97,17 +119,7 @@ class Node(Device):
             print("\n".join(log))
             return
 
-        update = list()
-        for k,v in self.tracking_buffer.items():
-            if ((k + MSG_TIMEOUT) < time()):
-                tmp = make_ack(v.dn, v.dst, v.sn, v.src, RCKv, v.data)
-                log.append(f"(| TRYING TO RESEND\n  {tmp}\n  VIA\n  BRODCAST")
-                update.append(k)
-                brodcast(self, tmp)
-
-        for x in update:
-            tmp = self.tracking_buffer.pop(x)
-            self.tracking_buffer[time()] = tmp
+        self.check_resend(log)
 
         print("\n".join(log))
         return
