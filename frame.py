@@ -1,5 +1,11 @@
+"""
+Used to manipulate the frame spec we use.
+"""
+
 from dataclasses import dataclass, field
 from enum import Enum, auto
+
+# Macros for easy ACK asignment
 
 RCKv = 0b00000000
 NAKv = 0b00000001
@@ -49,10 +55,14 @@ def dump_frame(f:Frame, force_crc = 0x00,
     :arg do_crc: Calulate crc.
     """
 
+    # To calulate the crc we need to dump with an empyt crc first.
+
     if (do_crc):
         crc = calc_crc(f)
     else:
         crc = force_crc
+
+    # Dump object as A BINARY FORMAT AS REQUESTED
 
     tmp = f.dn.to_bytes(1, "big")
     tmp += f.dst.to_bytes(1, "big")
@@ -67,8 +77,10 @@ def dump_frame(f:Frame, force_crc = 0x00,
 
 def load_frame(b:bytes) -> Frame:
     """
-    Dumps a frame as bytes.
+    Loads a frame as bytes.
     """
+
+    # Load object as A BINARY FORMAT AS REQUESTED
 
     tmp = Frame(int(b[0]),
                 int(b[1]),
@@ -84,6 +96,8 @@ def calc_crc(f:Frame) -> int:
     """
     Calulates the crc of the frame.
     """
+
+    # CRC is just the sum of all bytes truncated to the last byte
 
     tmp = dump_frame(f, do_crc=False)
     l = sum(tmp).to_bytes(500, "big")[-1]
